@@ -13,11 +13,12 @@ def test_pdf_knowledge_base():
         uri="tmp/lancedb",
     )
 
-    # Create a knowledge base with the PDFs from the data/pdfs directory
+    # Read the PDF file as bytes
     file_path = Path(__file__).parent / "data" / "thai_recipes_short.pdf"
     with open(file_path, "rb") as file:
         pdf_bytes = file.read()
 
+    # Create knowledge base
     knowledge_base = PDFBytesKnowledgeBase(
         pdfs=[pdf_bytes],
         vector_db=vector_db,
@@ -52,11 +53,12 @@ async def test_pdf_knowledge_base_async():
         uri="tmp/lancedb",
     )
 
-    # Create knowledge base
+    # Read the PDF file as bytes
     file_path = Path(__file__).parent / "data" / "thai_recipes_short.pdf"
     with open(file_path, "rb") as file:
         pdf_bytes = file.read()
 
+    # Create knowledge base
     knowledge_base = PDFBytesKnowledgeBase(
         pdfs=[pdf_bytes],
         vector_db=vector_db,

@@ -17,7 +17,7 @@ class PDFBytesKnowledgeBase(AgentKnowledge):
 
     @property
     def document_lists(self) -> Iterator[List[Document]]:
-        """Iterate over PDFs and yield lists of documents.
+        """Iterate over PDFs bytes and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
         Returns:
@@ -30,7 +30,7 @@ class PDFBytesKnowledgeBase(AgentKnowledge):
 
     @property
     async def async_document_lists(self) -> AsyncIterator[List[Document]]:
-        """Iterate over PDFs and yield lists of documents.
+        """Iterate over PDFs bytes and yield lists of documents.
         Each object yielded by the iterator is a list of documents.
 
         Returns:
