@@ -1859,6 +1859,7 @@ class Agent:
         session_messages: List[Message] = []
         self.memory = cast(Memory, self.memory)
         if self.enable_user_memories and run_messages.user_message is not None:
+            log_debug("Creating user memories.")
             self.memory.create_user_memories(message=run_messages.user_message.get_content_string(), user_id=user_id)
 
             # TODO: Possibly do both of these in one step
@@ -1887,6 +1888,7 @@ class Agent:
 
         # Update the session summary if needed
         if self.enable_session_summaries:
+            log_debug("Creating session summary.")
             self.memory.create_session_summary(session_id=session_id, user_id=user_id)
 
     async def _amake_memories_and_summaries(
@@ -1899,6 +1901,7 @@ class Agent:
         self.memory = cast(Memory, self.memory)
         session_messages: List[Message] = []
         if self.enable_user_memories and run_messages.user_message is not None:
+            log_debug("Creating user memories.")
             await self.memory.acreate_user_memories(
                 message=run_messages.user_message.get_content_string(), user_id=user_id
             )
@@ -1929,6 +1932,7 @@ class Agent:
 
         # Update the session summary if needed
         if self.enable_session_summaries:
+            log_debug("Creating session summary.")
             await self.memory.acreate_session_summary(session_id=session_id, user_id=user_id)
 
     def get_tools(
@@ -1953,6 +1957,15 @@ class Agent:
 
         # Add tools for accessing knowledge
         if self.knowledge is not None or self.retriever is not None:
+            # Check if retriever is an async function but used in sync mode
+            from inspect import iscoroutinefunction
+
+            if not async_mode and iscoroutinefunction(self.retriever):
+                log_warning(
+                    "Async retriever function is being used with synchronous agent.run() or agent.print_response(). "
+                    "It is recommended to use agent.arun() or agent.aprint_response() instead."
+                )
+
             if self.search_knowledge:
                 # Use async or sync search based on async_mode
                 if async_mode:
@@ -2018,7 +2031,7 @@ class Agent:
                             if name not in _functions_for_model:
                                 func._agent = self
                                 func.process_entrypoint(strict=strict)
-                                if strict:
+                                if strict and func.strict is None:
                                     func.strict = True
                                 if self.tool_hooks is not None:
                                     func.tool_hooks = self.tool_hooks
@@ -2219,7 +2232,7 @@ class Agent:
             else:
                 self.memory = cast(Memory, self.memory)
                 # We fake the structure on storage, to maintain the interface with the legacy implementation
-                run_responses = self.memory.runs[session_id]  # type: ignore
+                run_responses = self.memory.runs.get(session_id, [])  # type: ignore
                 memory_dict = self.memory.to_dict()
                 memory_dict["runs"] = [rr.to_dict() for rr in run_responses]
         else:
