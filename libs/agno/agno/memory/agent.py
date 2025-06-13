@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from pydantic import BaseModel, ConfigDict
 
@@ -151,7 +151,7 @@ class AgentMemory(BaseModel):
         return [message.model_dump() for message in self.messages]
 
     def get_messages_from_last_n_runs(
-        self, last_n: Optional[int] = None, skip_role: Optional[str] = None
+        self, last_n: Optional[int] = None, skip_role: Optional[Union[str, List[str]]] = None
     ) -> List[Message]:
         """Returns the messages from the last_n runs, excluding previously tagged history messages.
 
@@ -174,6 +174,9 @@ class AgentMemory(BaseModel):
 
             for message in run.response.messages:
                 # Skip messages with specified role
+                if isinstance(skip_role, list):
+                    if message.role in skip_role or message.tool_calls:
+                        continue
                 if skip_role and message.role == skip_role:
                     continue
                 # Skip messages that were tagged as history in previous runs

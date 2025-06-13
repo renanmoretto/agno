@@ -138,6 +138,8 @@ class Agent:
     num_history_responses: Optional[int] = None
     # Number of historical runs to include in the messages
     num_history_runs: int = 3
+    # List of roles to skip when adding history messages
+    history_skip_roles: Optional[List[str]] = None
 
     # --- Agent Knowledge ---
     knowledge: Optional[AgentKnowledge] = None
@@ -342,6 +344,7 @@ class Agent:
         add_history_to_messages: bool = False,
         num_history_responses: Optional[int] = None,
         num_history_runs: int = 3,
+        history_skip_roles: Optional[List[str]] = None,
         knowledge: Optional[AgentKnowledge] = None,
         knowledge_filters: Optional[Dict[str, Any]] = None,
         enable_agentic_knowledge_filters: Optional[bool] = None,
@@ -431,6 +434,7 @@ class Agent:
         self.add_history_to_messages = add_history_to_messages
         self.num_history_responses = num_history_responses
         self.num_history_runs = num_history_runs
+        self.history_skip_roles = history_skip_roles
 
         self.knowledge = knowledge
         self.knowledge_filters = knowledge_filters
@@ -4683,16 +4687,19 @@ class Agent:
         if self.add_history_to_messages:
             from copy import deepcopy
 
+            skip_roles = [self.system_message_role] + (self.history_skip_roles or [])
+
             history: List[Message] = []
             if isinstance(self.memory, AgentMemory):
                 history = self.memory.get_messages_from_last_n_runs(
-                    last_n=self.num_history_runs, skip_role=self.system_message_role
+                    last_n=self.num_history_runs,
+                    skip_role=skip_roles,
                 )
             elif isinstance(self.memory, Memory):
                 history = self.memory.get_messages_from_last_n_runs(
                     session_id=session_id,
                     last_n=self.num_history_runs,
-                    skip_role=self.system_message_role,
+                    skip_role=skip_roles,
                     agent_id=self.agent_id,
                 )
 
@@ -4819,13 +4826,14 @@ class Agent:
             history: List[Message] = []
             if isinstance(self.memory, AgentMemory):
                 history = self.memory.get_messages_from_last_n_runs(
-                    last_n=self.num_history_runs, skip_role=self.system_message_role
+                    last_n=self.num_history_runs,
+                    skip_role=[self.system_message_role] + self.history_skip_roles,
                 )
             elif isinstance(self.memory, Memory):
                 history = self.memory.get_messages_from_last_n_runs(
                     session_id=session_id,
                     last_n=self.num_history_runs,
-                    skip_role=self.system_message_role,
+                    skip_role=[self.system_message_role] + self.history_skip_roles,
                     agent_id=self.agent_id,
                 )
             if len(history) > 0:

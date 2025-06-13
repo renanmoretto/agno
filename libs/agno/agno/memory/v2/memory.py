@@ -695,7 +695,7 @@ class Memory:
         agent_id: Optional[str] = None,
         team_id: Optional[str] = None,
         last_n: Optional[int] = None,
-        skip_role: Optional[str] = None,
+        skip_role: Optional[Union[str, List[str]]] = None,
         skip_history_messages: bool = True,
     ) -> List[Message]:
         """Returns the messages from the last_n runs, excluding previously tagged history messages.
@@ -726,6 +726,9 @@ class Memory:
 
             for message in run_response.messages:
                 # Skip messages with specified role
+                if isinstance(skip_role, list):
+                    if message.role in skip_role or message.tool_calls:
+                        continue
                 if skip_role and message.role == skip_role:
                     continue
                 # Skip messages that were tagged as history in previous runs

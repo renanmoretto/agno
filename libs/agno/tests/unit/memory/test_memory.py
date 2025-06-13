@@ -597,6 +597,76 @@ def test_get_messages_from_last_n_runs(memory_with_model):
     assert messages[1].content == "It's expected to rain."
 
 
+def test_get_messages_from_last_n_runs_with_skip_str(memory_with_model):
+    """Test retrieving messages from the last N runs."""
+    # Add multiple runs with messages
+    session_id = "test_session"
+
+    run1 = RunResponse(
+        content="First response",
+        messages=[
+            Message(role="user", content="What's the weather like?"),
+            Message(role="assistant", content="It's sunny today."),
+        ],
+    )
+
+    run2 = RunResponse(
+        content="Second response",
+        messages=[
+            Message(role="user", content="What about tomorrow?"),
+            Message(role="assistant", content="It's expected to rain."),
+        ],
+    )
+
+    memory_with_model.add_run(session_id, run1)
+    memory_with_model.add_run(session_id, run2)
+
+    # Get messages from the last 1 run
+    messages = memory_with_model.get_messages_from_last_n_runs(session_id, last_n=2, skip_role="assistant")
+
+    # Verify only the last run's messages were retrieved
+    assert len(messages) == 2
+    assert messages[0].role == "user"
+    assert messages[0].content == "What's the weather like?"
+    assert messages[1].role == "user"
+    assert messages[1].content == "What about tomorrow?"
+
+
+def test_get_messages_from_last_n_runs_with_skip_list(memory_with_model):
+    """Test retrieving messages from the last N runs."""
+    # Add multiple runs with messages
+    session_id = "test_session"
+
+    run1 = RunResponse(
+        content="First response",
+        messages=[
+            Message(role="user", content="What's the weather like?"),
+            Message(role="assistant", content="It's sunny today."),
+        ],
+    )
+
+    run2 = RunResponse(
+        content="Second response",
+        messages=[
+            Message(role="user", content="What about tomorrow?"),
+            Message(role="assistant", content="It's expected to rain."),
+        ],
+    )
+
+    memory_with_model.add_run(session_id, run1)
+    memory_with_model.add_run(session_id, run2)
+
+    # Get messages from the last 1 run
+    messages = memory_with_model.get_messages_from_last_n_runs(session_id, last_n=2, skip_role=["assistant"])
+
+    # Verify only the last run's messages were retrieved
+    assert len(messages) == 2
+    assert messages[0].role == "user"
+    assert messages[0].content == "What's the weather like?"
+    assert messages[1].role == "user"
+    assert messages[1].content == "What about tomorrow?"
+
+
 # Team Context Tests
 def test_add_interaction_to_team_context(memory_with_model):
     """Test adding an interaction to team context."""
